@@ -1,0 +1,8 @@
+*.exe
+*.key
+.env
+/paseto
+/dist
+/coverage
+/*.txt
+*.log
