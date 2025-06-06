@@ -1,7 +1,10 @@
 package xpaseto
 
 import (
+	"fmt"
 	"time"
+
+	"aidanwoods.dev/go-paseto"
 )
 
 // Claim represents a token claim with a code, human-readable name, and value.
@@ -65,5 +68,94 @@ func StdClaims() []Claim {
 		ClaimIssuer(""),
 		ClaimSubject(""),
 		ClaimAudience(""),
+	}
+}
+
+// NotBeforeNbf checks that the token has a valid "nbf" field, and that its time
+// is before the given time. This is the same rule as paseto.NotBeforeNbf, just
+// with a time argument.
+func NotBeforeNbf(t time.Time) paseto.Rule {
+	return func(token paseto.Token) error {
+		nbf, err := token.GetNotBefore()
+		if err != nil {
+			return err
+		}
+
+		if t.Before(nbf) {
+			return fmt.Errorf("this token is not valid yet")
+		}
+
+		return nil
+	}
+}
+
+// NotExpired checks that the token has a valid "exp" field, and that its time
+// is after the given time. This is the same rule as paseto.NotExpired, just
+// with a time argument.
+func NotExpired(t time.Time) paseto.Rule {
+	return func(token paseto.Token) error {
+		exp, err := token.GetExpiration()
+		if err != nil {
+			return err
+		}
+
+		if t.After(exp) {
+			return fmt.Errorf("this token has expired")
+		}
+
+		return nil
+	}
+}
+
+// NotIssuedAfter checks that the token has a valid "iat" field, and that its
+// time is before the given time. This is a subset of the paseto.ValidAt rule.
+func NotIssuedAfter(t time.Time) paseto.Rule {
+	return func(token paseto.Token) error {
+		iat, err := token.GetIssuedAt()
+		if err != nil {
+			return err
+		}
+
+		if t.Before(iat) {
+			return fmt.Errorf("this token has a future Issued At time")
+		}
+
+		return nil
+	}
+}
+
+// ClaimTimeConsistency checks that the "iat", "nbf", and "exp" fields exist and
+// are valid, and that their times are consistent with each other.
+// Specifically it checks that iat <= nbf <= exp.
+func ClaimTimeConsistency() paseto.Rule {
+	return func(token paseto.Token) error {
+		iat, err := token.GetIssuedAt()
+		if err != nil {
+			return err
+		}
+
+		nbf, err := token.GetNotBefore()
+		if err != nil {
+			return err
+		}
+
+		exp, err := token.GetExpiration()
+		if err != nil {
+			return err
+		}
+
+		if iat.After(exp) {
+			return fmt.Errorf("Issued At time is after Expiration time")
+		}
+
+		if iat.After(nbf) {
+			return fmt.Errorf("Issued At time is after Not Before time")
+		}
+
+		if nbf.After(exp) {
+			return fmt.Errorf("Not Before time is after Expiration time")
+		}
+
+		return nil
 	}
 }

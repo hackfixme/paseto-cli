@@ -9,6 +9,31 @@ aidanwoods.dev/go-paseto/internal/random
 aidanwoods.dev/go-result/option
 aidanwoods.dev/go-result/result
 aidanwoods.dev/go-result/types
+# github.com/alecthomas/kong v1.11.0
+## explicit; go 1.20
+github.com/alecthomas/kong
+# github.com/lmittmann/tint v1.1.1
+## explicit; go 1.21
+github.com/lmittmann/tint
+# github.com/mandelsoft/filepath v0.0.0-20240223090642-3e2777258aa3
+## explicit; go 1.19
+github.com/mandelsoft/filepath/pkg/filepath
+# github.com/mandelsoft/vfs v0.4.4
+## explicit; go 1.22.5
+github.com/mandelsoft/vfs/pkg/memoryfs
+github.com/mandelsoft/vfs/pkg/osfs
+github.com/mandelsoft/vfs/pkg/projectionfs
+github.com/mandelsoft/vfs/pkg/utils
+github.com/mandelsoft/vfs/pkg/vfs
+# github.com/mattn/go-colorable v0.1.14
+## explicit; go 1.18
+github.com/mattn/go-colorable
+# github.com/mattn/go-isatty v0.0.20
+## explicit; go 1.15
+github.com/mattn/go-isatty
+# github.com/modern-go/reflect2 v1.0.2
+## explicit; go 1.12
+github.com/modern-go/reflect2
 # golang.org/x/crypto v0.33.0
 ## explicit; go 1.20
 golang.org/x/crypto/blake2b
@@ -20,3 +45,5 @@ golang.org/x/crypto/internal/poly1305
 # golang.org/x/sys v0.30.0
 ## explicit; go 1.18
 golang.org/x/sys/cpu
+golang.org/x/sys/unix
+golang.org/x/sys/windows

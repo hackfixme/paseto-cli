@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"aidanwoods.dev/go-paseto"
+
+	actx "go.hackfix.me/paseto-cli/app/context"
 )
 
 // TokenFormat represents the output format for token display.
@@ -31,7 +33,7 @@ const defaultExpiration = time.Hour
 
 // NewToken creates a new token with the specified claims.
 // Default claims (iat, nbf, exp) are automatically added if not provided.
-func NewToken(claims ...Claim) (*Token, error) {
+func NewToken(ts actx.TimeSource, claims ...Claim) (*Token, error) {
 	token := paseto.NewToken()
 
 	for _, c := range claims {
@@ -49,7 +51,7 @@ func NewToken(claims ...Claim) (*Token, error) {
 
 	var (
 		setClaims = token.Claims()
-		now       = time.Now()
+		now       = ts.Now()
 	)
 	if _, ok := setClaims["iat"]; !ok {
 		token.SetIssuedAt(now)
@@ -107,11 +109,12 @@ func ParseToken(key *Key, token string) (*Token, error) {
 }
 
 // Validate validates the token against default and additional rules.
-func (tk *Token) Validate(extraRules ...paseto.Rule) (err error) {
+func (tk *Token) Validate(ts actx.TimeSource, extraRules ...paseto.Rule) (err error) {
 	defaultRules := []paseto.Rule{
-		paseto.NotExpired(),
-		paseto.NotBeforeNbf(),
-		paseto.ValidAt(time.Now()),
+		ClaimTimeConsistency(),
+		NotIssuedAfter(ts.Now()),
+		NotBeforeNbf(ts.Now()),
+		NotExpired(ts.Now()),
 	}
 
 	rules := append(defaultRules, extraRules...)
