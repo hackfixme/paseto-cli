@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"io"
+	"maps"
 	"os"
 	"regexp"
 	"slices"
@@ -132,8 +135,28 @@ func parseGenTokenArgs(cmdArgs []string, cmdName string) (*genTokenArgs, *flag.F
 	exampleExp := time.Date(y, m, d+1, 0, 0, 0, 0, time.Now().Location())
 	fs.Var(&exp, "exp",
 		fmt.Sprintf("token expiration as a duration from now (e.g. 5m, 1h, 3d, 1M3d, 1Y) or a future timestamp in RFC 3339 format (e.g. %s) (default 1h)", exampleExp.Format(time.RFC3339)))
-	claimsFromArgs := flagStringMap(map[string]any{})
-	fs.Var(&claimsFromArgs, "claim", "key=value pair to add to the token; can be specified multiple times (e.g. role=admin)")
+	claimsFromArgs := map[string]any{}
+	var claimsFromStdin map[string]any
+	fs.Func("claim", "key=value pair to add to the token, or '-' to read claims as JSON from stdin; can be specified multiple times (e.g. role=admin)",
+		func(v string) error {
+			if v == "-" && claimsFromStdin == nil {
+				var err error
+				claimsFromStdin, err = readClaimsFromStdin()
+				if err != nil {
+					return fmt.Errorf("failed reading claims from stdin: %w", err)
+				}
+			}
+
+			if strings.Contains(v, "=") {
+				kv := strings.SplitN(v, "=", 2)
+				if len(kv) == 2 {
+					claimsFromArgs[kv[0]] = kv[1]
+				}
+			}
+
+			return nil
+		})
+
 	err := fs.Parse(cmdArgs)
 	if err != nil {
 		return nil, fs, err
@@ -147,9 +170,16 @@ func parseGenTokenArgs(cmdArgs []string, cmdName string) (*genTokenArgs, *flag.F
 		return nil, fs, fmt.Errorf("keyfile is required")
 	}
 
-	claims := make([]xpaseto.Claim, 0, len(claimsFromArgs))
+	// Claims from args can override ones from stdin
+	claimsInput := make(map[string]any)
+	if claimsFromStdin != nil {
+		claimsInput = claimsFromStdin
+	}
+	maps.Copy(claimsInput, claimsFromArgs)
+
+	claims := make([]xpaseto.Claim, 0, len(claimsInput))
 	var foundExp bool
-	for code, value := range claimsFromArgs {
+	for code, value := range claimsInput {
 		claim := xpaseto.NewClaim(code, "", value)
 		claims = append(claims, claim)
 		if code == "exp" {
@@ -197,22 +227,6 @@ func parseParseArgs(cmdArgs []string) (*parseArgs, *flag.FlagSet, error) {
 		format:   xpaseto.TokenFormat(*ofmt),
 		validate: *validate,
 	}, fs, nil
-}
-
-type flagStringMap map[string]any
-
-func (fsm *flagStringMap) String() string {
-	return ""
-}
-
-func (fsm *flagStringMap) Set(value string) error {
-	if strings.Contains(value, "=") {
-		keyValue := strings.SplitN(value, "=", 2)
-		if len(keyValue) == 2 {
-			(*fsm)[keyValue[0]] = keyValue[1]
-		}
-	}
-	return nil
 }
 
 type expiration time.Time
@@ -286,4 +300,27 @@ func parseDuration(s string) (time.Duration, error) {
 	}
 
 	return sumDur, nil
+}
+
+func readClaimsFromStdin() (map[string]any, error) {
+	stat, err := os.Stdin.Stat()
+	if err != nil {
+		panic(err)
+	}
+
+	if (stat.Mode() & os.ModeCharDevice) != 0 {
+		return nil, errors.New("no data received on stdin")
+	}
+
+	data, err := io.ReadAll(os.Stdin)
+	if err != nil {
+		panic(err)
+	}
+
+	claims := make(map[string]any)
+	if err = json.Unmarshal(data, &claims); err != nil {
+		return nil, fmt.Errorf("failed unmarshaling JSON: %w", err)
+	}
+
+	return claims, nil
 }
