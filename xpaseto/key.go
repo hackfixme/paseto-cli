@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"aidanwoods.dev/go-paseto"
@@ -139,11 +138,10 @@ func (k Key) Type() KeyType {
 }
 
 // Write writes the key to the specified writer in the given encoding format.
-func (k Key) Write(w io.Writer, enc KeyEncoding) error {
+// If extra is true, additional information is written for hex keys.
+func (k Key) Write(w io.Writer, enc KeyEncoding, extra bool) error {
 	out := k.Render(enc)
-	// Writing hex to stdout requires some special handling. I prefer doing this
-	// here than elsewhere.
-	if file, ok := w.(*os.File); ok && file.Fd() == os.Stdout.Fd() && enc == KeyEncodingHex {
+	if extra && enc == KeyEncodingHex {
 		if k.typ == KeyTypeSymmetric {
 			out = fmt.Sprintf("%s\n", out)
 		} else {

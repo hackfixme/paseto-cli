@@ -9,12 +9,16 @@ require (
 	github.com/mandelsoft/vfs v0.4.4
 	github.com/mattn/go-colorable v0.1.14
 	github.com/mattn/go-isatty v0.0.20
+	github.com/stretchr/testify v1.10.0
 )
 
 require (
 	aidanwoods.dev/go-result v0.3.1 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/mandelsoft/filepath v0.0.0-20240223090642-3e2777258aa3 // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

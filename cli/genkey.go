@@ -42,11 +42,13 @@ func (c *GenKey) Run(appCtx *actx.Context) error {
 
 func writeKey(appCtx *actx.Context, k *xpaseto.Key, outFile string, enc xpaseto.KeyEncoding) error {
 	var (
-		w    io.Writer
-		path string
+		w     io.Writer
+		path  string
+		extra bool
 	)
 	if outFile == "" {
 		w = appCtx.Stdout
+		extra = true
 	} else {
 		path = fmt.Sprintf("%s-%s.key", outFile, k.Type().Short())
 		f, err := appCtx.FS.Create(path)
@@ -57,5 +59,5 @@ func writeKey(appCtx *actx.Context, k *xpaseto.Key, outFile string, enc xpaseto.
 		w = f
 	}
 
-	return k.Write(w, enc)
+	return k.Write(w, enc, extra)
 }
