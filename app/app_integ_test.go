@@ -913,6 +913,55 @@ func TestAppParseOK(t *testing.T) {
 				"Expiration:  2024-12-31 00:00:00 +0000 UTC  \n",
 		},
 		{
+			variant:   "time_skew_tolerance-exp-default",
+			purpose:   paseto.Public,
+			version:   paseto.Version4,
+			encoding:  xpaseto.KeyEncodingPEM,
+			outputFmt: xpaseto.TokenFormatText,
+			claims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow.AddDate(0, 0, -1)),
+				xpaseto.ClaimNotBefore(timeNow.AddDate(0, 0, -1)),
+				xpaseto.ClaimExpiration(timeNow.Add(-10 * time.Second)),
+			},
+			expOutput: "" +
+				"Issued At:   2024-12-31 00:00:00 +0000 UTC  \n" +
+				"Not Before:  2024-12-31 00:00:00 +0000 UTC  \n" +
+				"Expiration:  2024-12-31 23:59:50 +0000 UTC  \n",
+		},
+		{
+			variant:   "time_skew_tolerance-exp-custom",
+			purpose:   paseto.Public,
+			version:   paseto.Version4,
+			encoding:  xpaseto.KeyEncodingPEM,
+			outputFmt: xpaseto.TokenFormatText,
+			claims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow.AddDate(0, 0, -1)),
+				xpaseto.ClaimNotBefore(timeNow.AddDate(0, 0, -1)),
+				xpaseto.ClaimExpiration(timeNow.Add(-50 * time.Second)),
+			},
+			args: []string{"--time-skew-tolerance=1m"},
+			expOutput: "" +
+				"Issued At:   2024-12-31 00:00:00 +0000 UTC  \n" +
+				"Not Before:  2024-12-31 00:00:00 +0000 UTC  \n" +
+				"Expiration:  2024-12-31 23:59:10 +0000 UTC  \n",
+		},
+		{
+			variant:   "time_skew_tolerance-iat-nbf-default",
+			purpose:   paseto.Public,
+			version:   paseto.Version4,
+			encoding:  xpaseto.KeyEncodingPEM,
+			outputFmt: xpaseto.TokenFormatText,
+			claims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow.Add(10 * time.Second)),
+				xpaseto.ClaimNotBefore(timeNow.Add(10 * time.Second)),
+				xpaseto.ClaimExpiration(timeNow.Add(time.Hour)),
+			},
+			expOutput: "" +
+				"Issued At:   2025-01-01 00:00:10 +0000 UTC  \n" +
+				"Not Before:  2025-01-01 00:00:10 +0000 UTC  \n" +
+				"Expiration:  2025-01-01 01:00:00 +0000 UTC  \n",
+		},
+		{
 			variant:   "exp_custom_claims",
 			purpose:   paseto.Local,
 			version:   paseto.Version2,

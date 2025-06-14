@@ -109,12 +109,15 @@ func ParseToken(key *Key, token string) (*Token, error) {
 }
 
 // Validate validates the token against default and additional rules.
-func (tk *Token) Validate(ts actx.TimeSource, extraRules ...paseto.Rule) (err error) {
+func (tk *Token) Validate(
+	ts actx.TimeSource, timeSkewTolerance time.Duration,
+	extraRules ...paseto.Rule,
+) (err error) {
 	defaultRules := []paseto.Rule{
 		ClaimTimeConsistency(),
-		NotIssuedAfter(ts.Now()),
-		NotBeforeNbf(ts.Now()),
-		NotExpired(ts.Now()),
+		NotIssuedAfter(ts.Now(), timeSkewTolerance),
+		NotBeforeNbf(ts.Now(), timeSkewTolerance),
+		NotExpired(ts.Now(), timeSkewTolerance),
 	}
 
 	rules := append(defaultRules, extraRules...)

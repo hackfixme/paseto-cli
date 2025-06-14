@@ -74,14 +74,14 @@ func StdClaims() []Claim {
 // NotBeforeNbf checks that the token has a valid "nbf" field, and that its time
 // is before the given time. This is the same rule as paseto.NotBeforeNbf, just
 // with a time argument.
-func NotBeforeNbf(t time.Time) paseto.Rule {
+func NotBeforeNbf(t time.Time, tolerance time.Duration) paseto.Rule {
 	return func(token paseto.Token) error {
 		nbf, err := token.GetNotBefore()
 		if err != nil {
 			return err
 		}
 
-		if t.Before(nbf) {
+		if t.Before(nbf.Add(-tolerance)) {
 			return fmt.Errorf("this token is not valid yet")
 		}
 
@@ -92,14 +92,14 @@ func NotBeforeNbf(t time.Time) paseto.Rule {
 // NotExpired checks that the token has a valid "exp" field, and that its time
 // is after the given time. This is the same rule as paseto.NotExpired, just
 // with a time argument.
-func NotExpired(t time.Time) paseto.Rule {
+func NotExpired(t time.Time, tolerance time.Duration) paseto.Rule {
 	return func(token paseto.Token) error {
 		exp, err := token.GetExpiration()
 		if err != nil {
 			return err
 		}
 
-		if t.After(exp) {
+		if t.After(exp.Add(tolerance)) {
 			return fmt.Errorf("this token has expired")
 		}
 
@@ -109,14 +109,14 @@ func NotExpired(t time.Time) paseto.Rule {
 
 // NotIssuedAfter checks that the token has a valid "iat" field, and that its
 // time is before the given time. This is a subset of the paseto.ValidAt rule.
-func NotIssuedAfter(t time.Time) paseto.Rule {
+func NotIssuedAfter(t time.Time, tolerance time.Duration) paseto.Rule {
 	return func(token paseto.Token) error {
 		iat, err := token.GetIssuedAt()
 		if err != nil {
 			return err
 		}
 
-		if t.Before(iat) {
+		if t.Before(iat.Add(-tolerance)) {
 			return fmt.Errorf("this token has a future Issued At time")
 		}
 
