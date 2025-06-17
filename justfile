@@ -7,9 +7,8 @@ covdir  := rootdir + '/coverage'
 default:
   @just --list
 
-build:
-  @mkdir -p "{{distdir}}"
-  @go build -o "{{distdir}}/paseto" "{{rootdir}}/cmd/paseto"
+build *args:
+  ./release/build.sh '{{args}}'
 
 [positional-arguments]
 test *args:

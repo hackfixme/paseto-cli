@@ -1,0 +1,19 @@
+name: "paseto-cli"
+arch: "${GOARCH}"
+platform: "linux"
+version: "${VERSION}"
+version_schema: semver
+section: "default"
+maintainer: "hackFIXME"
+description: |
+  CLI tool for working with PASETO
+homepage: "https://go.hackfix.me/paseto-cli"
+license: "MIT"
+contents:
+- src: ./paseto
+  dst: /usr/bin/paseto
+
+deb:
+  compression: xz
+  fields:
+    Bugs: https://github.com/hackfixme/paseto-cli/issues
