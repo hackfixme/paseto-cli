@@ -76,14 +76,14 @@ Flags:
 Examples:
 - Create a signed v4 token which expires one hour from now:
   ```sh
-  $ paseto sign --key-file v4-priv.key \
-      v4.public.eyJleHAiOiIyMDI1LTA2LTE3VDEzOjAwOjAwWiIsImlhdCI6IjIwMjUtMDYtMTdUMTI6MDA6MDBaIiwibmJmIjoiMjAyNS0wNi0xN1QxMjowMDowMFoifXMMUWTRJKhb0l5upxXaGVS0ZjZEVfgjO22K74N89MuOrWzTAsHvOSXVBXbV7_7kp0KwBIrhCrBZYwVu5iSaQAc
+  $ paseto sign --key-file v4-priv.key
+  v4.public.eyJleHAiOiIyMDI1LTA2LTE3VDEzOjAwOjAwWiIsImlhdCI6IjIwMjUtMDYtMTdUMTI6MDA6MDBaIiwibmJmIjoiMjAyNS0wNi0xN1QxMjowMDowMFoifXMMUWTRJKhb0l5upxXaGVS0ZjZEVfgjO22K74N89MuOrWzTAsHvOSXVBXbV7_7kp0KwBIrhCrBZYwVu5iSaQAc
   ```
 
 - Create a signed v4 token with custom claims which expires one week from now:
   ```sh
-  $ paseto sign --key-file v4-priv.key --claim role=admin --expiration=1w \
-      v4.public.eyJleHAiOiIyMDI1LTA2LTI0VDEyOjAwOjAwWiIsImlhdCI6IjIwMjUtMDYtMTdUMTI6MDA6MDBaIiwibmJmIjoiMjAyNS0wNi0xN1QxMjowMDowMFoiLCJyb2xlIjoiYWRtaW4ifQgLXjFzQ-Plrr7DDgOCuuZNxur7KSkaiYCYhoEn-4uY1pc3qIqwKq1CF4CBwqHmplNuzP9RZvZR-n9sZmzGOQM
+  $ paseto sign --key-file v4-priv.key --claim role=admin --expiration=1w
+  v4.public.eyJleHAiOiIyMDI1LTA2LTI0VDEyOjAwOjAwWiIsImlhdCI6IjIwMjUtMDYtMTdUMTI6MDA6MDBaIiwibmJmIjoiMjAyNS0wNi0xN1QxMjowMDowMFoiLCJyb2xlIjoiYWRtaW4ifQgLXjFzQ-Plrr7DDgOCuuZNxur7KSkaiYCYhoEn-4uY1pc3qIqwKq1CF4CBwqHmplNuzP9RZvZR-n9sZmzGOQM
   ```
 
 - Create a signed v3 token with custom claims from JSON which expires in October 2025:
@@ -107,14 +107,17 @@ Flags:
 Examples:
 - Create an encrypted v3 token which expires three days from now:
   ```sh
-  $ paseto encrypt --protocol-version 3 --key-file v3-sym.key --expiration 3d \
-      v3.local.DJnSz6coQrj4eNIS0JyUju-Txmz5s96RysB72gW8GDCudMWerQq5yzkg5g0bi081VwpE6_5CkNNruY_276kh-kA79yqpvnjyQ8ZAZw_sfcD7y8rVJFdFAa1KWF5kEiJcq6B45ZPYzPIHrg7FF_xALgeWI_IMPetgJQj7Pzy_1lnT1Ipr5C1D-BFk6M4uov9pTeX_B3GgdzJGZfFV1mxOSc8FPlKvuqnP
+  $ paseto encrypt --protocol-version 3 --key-file v3-sym.key --expiration 3d
+  v3.local.DJnSz6coQrj4eNIS0JyUju-Txmz5s96RysB72gW8GDCudMWerQq5yzkg5g0bi081VwpE6_5CkNNruY_276kh-kA79yqpvnjyQ8ZAZw_sfcD7y8rVJFdFAa1KWF5kEiJcq6B45ZPYzPIHrg7FF_xALgeWI_IMPetgJQj7Pzy_1lnT1Ipr5C1D-BFk6M4uov9pTeX_B3GgdzJGZfFV1mxOSc8FPlKvuqnP
   ```
 
 
 ### Parsing tokens
 
 The `parse` command parses, verifies or decrypts tokens, optionally validates them, and writes their claim data to stdout. Validation is enabled by default, but it can be disabled by passing `--no-validate`.
+
+Arguments:
+- `<token>`: the token
 
 Flags:
 - `-k`, `--key-file=STRING`: Path to a key file to verify or decrypt the token (public key for signed tokens, shared key for encrypted tokens).
