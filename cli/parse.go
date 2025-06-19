@@ -41,7 +41,7 @@ func (c *Parse) Run(appCtx *actx.Context) error {
 		return err
 	}
 	if c.Validate {
-		err = token.Validate(appCtx.Time, c.TimeSkewTolerance)
+		err = token.Validate(appCtx.TimeNow, c.TimeSkewTolerance)
 		if err != nil {
 			return err
 		}

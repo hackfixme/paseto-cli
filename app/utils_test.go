@@ -37,7 +37,7 @@ func newTestApp(ctx context.Context, options ...Option) (*testApp, error) {
 		WithFS(memoryfs.New()),
 		WithLogger(false, false),
 		WithEnv(env),
-		WithTimeSource(&actx.MockTimeSource{T: timeNow}),
+		WithTimeNow(func() time.Time { return timeNow }),
 	}
 	opts = append(opts, options...)
 	app, err := New("paseto", opts...)

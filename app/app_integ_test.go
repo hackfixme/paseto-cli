@@ -1027,7 +1027,7 @@ func TestAppParseOK(t *testing.T) {
 			err = key.Write(f, tc.encoding, false)
 			h(assert.NoError(t, err))
 
-			token, err := xpaseto.NewToken(app.ctx.Time, tc.claims...)
+			token, err := xpaseto.NewToken(app.ctx.TimeNow, tc.claims...)
 			h(assert.NoError(t, err))
 
 			tkStr, err := op(token)
@@ -1188,7 +1188,7 @@ func TestAppParseErr(t *testing.T) {
 				args = append(args, "--key-file", tc.keyFile)
 			}
 
-			token, err := xpaseto.NewToken(app.ctx.Time, tc.claims...)
+			token, err := xpaseto.NewToken(app.ctx.TimeNow, tc.claims...)
 			h(assert.NoError(t, err))
 
 			args = append(args, tc.args...)

@@ -13,11 +13,7 @@ import (
 	"aidanwoods.dev/go-paseto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	actx "go.hackfix.me/paseto-cli/app/context"
 )
-
-var timeNow = time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
 
 func TestNewKey(t *testing.T) {
 	tests := []struct {
@@ -322,8 +318,6 @@ func TestKey_Encrypt(t *testing.T) {
 		},
 	}
 
-	ts := &actx.MockTimeSource{T: timeNow}
-
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			key, err := NewKey(tt.version, tt.purpose, nil)
@@ -334,7 +328,7 @@ func TestKey_Encrypt(t *testing.T) {
 				require.NotNil(t, key)
 			}
 
-			token, err := NewToken(ts, tt.claims...)
+			token, err := NewToken(timeNowFn, tt.claims...)
 			require.NoError(t, err)
 
 			encryptedToken, err := key.Encrypt(token)
@@ -547,7 +541,6 @@ func TestKey_Sign(t *testing.T) {
 		},
 	}
 
-	ts := &actx.MockTimeSource{T: timeNow}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var (
@@ -564,7 +557,7 @@ func TestKey_Sign(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			token, err := NewToken(ts)
+			token, err := NewToken(timeNowFn)
 			require.NoError(t, err)
 
 			signedToken, err := key.Sign(token)
@@ -985,4 +978,10 @@ type errorWriter struct{}
 
 func (ew errorWriter) Write(p []byte) (n int, err error) {
 	return 0, errors.New("write error")
+}
+
+var timeNow = time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)
+
+func timeNowFn() time.Time {
+	return timeNow
 }

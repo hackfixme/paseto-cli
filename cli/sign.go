@@ -34,7 +34,7 @@ func (c *Sign) Run(kctx *kong.Context, appCtx *actx.Context) error {
 
 	expSet := isExpirationSet(kctx.Args)
 	claims := mergeClaims(c.Claims.fromArgs, c.Claims.fromStdin, c.Expiration, expSet)
-	token, err := xpaseto.NewToken(appCtx.Time, claims...)
+	token, err := xpaseto.NewToken(appCtx.TimeNow, claims...)
 	if err != nil {
 		return err
 	}

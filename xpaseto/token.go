@@ -12,8 +12,6 @@ import (
 	"time"
 
 	"aidanwoods.dev/go-paseto"
-
-	actx "go.hackfix.me/paseto-cli/app/context"
 )
 
 // TokenFormat represents the output format for token display.
@@ -33,7 +31,7 @@ const defaultExpiration = time.Hour
 
 // NewToken creates a new token with the specified claims.
 // Default claims (iat, nbf, exp) are automatically added if not provided.
-func NewToken(ts actx.TimeSource, claims ...Claim) (*Token, error) {
+func NewToken(timeNowFn func() time.Time, claims ...Claim) (*Token, error) {
 	token := paseto.NewToken()
 
 	for _, c := range claims {
@@ -51,16 +49,16 @@ func NewToken(ts actx.TimeSource, claims ...Claim) (*Token, error) {
 
 	var (
 		setClaims = token.Claims()
-		now       = ts.Now()
+		timeNow   = timeNowFn()
 	)
 	if _, ok := setClaims["iat"]; !ok {
-		token.SetIssuedAt(now)
+		token.SetIssuedAt(timeNow)
 	}
 	if _, ok := setClaims["nbf"]; !ok {
-		token.SetNotBefore(now)
+		token.SetNotBefore(timeNow)
 	}
 	if _, ok := setClaims["exp"]; !ok {
-		token.SetExpiration(now.Add(defaultExpiration))
+		token.SetExpiration(timeNow.Add(defaultExpiration))
 	}
 
 	return &Token{&token}, nil
@@ -110,14 +108,15 @@ func ParseToken(key *Key, token string) (*Token, error) {
 
 // Validate validates the token against default and additional rules.
 func (tk *Token) Validate(
-	ts actx.TimeSource, timeSkewTolerance time.Duration,
+	timeNowFn func() time.Time, timeSkewTolerance time.Duration,
 	extraRules ...paseto.Rule,
 ) (err error) {
+	timeNow := timeNowFn()
 	defaultRules := []paseto.Rule{
 		ClaimTimeConsistency(),
-		NotIssuedAfter(ts.Now(), timeSkewTolerance),
-		NotBeforeNbf(ts.Now(), timeSkewTolerance),
-		NotExpired(ts.Now(), timeSkewTolerance),
+		NotIssuedAfter(timeNow, timeSkewTolerance),
+		NotBeforeNbf(timeNow, timeSkewTolerance),
+		NotExpired(timeNow, timeSkewTolerance),
 	}
 
 	rules := append(defaultRules, extraRules...)

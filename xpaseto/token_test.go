@@ -11,13 +11,9 @@ import (
 	"aidanwoods.dev/go-paseto"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	actx "go.hackfix.me/paseto-cli/app/context"
 )
 
 func TestNewToken(t *testing.T) {
-	ts := &actx.MockTimeSource{T: timeNow}
-
 	tests := []struct {
 		name   string
 		claims []Claim
@@ -107,7 +103,7 @@ func TestNewToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tok, err := NewToken(ts, tt.claims...)
+			tok, err := NewToken(timeNowFn, tt.claims...)
 
 			if tt.expErr != "" {
 				assert.Error(t, err)
@@ -125,9 +121,7 @@ func TestNewToken(t *testing.T) {
 }
 
 func TestParseToken(t *testing.T) {
-	ts := &actx.MockTimeSource{T: timeNow}
-
-	keyTokens := createTestKeyTokens(t, ts)
+	keyTokens := createTestKeyTokens(t)
 
 	tests := []struct {
 		name   string
@@ -206,13 +200,11 @@ func TestParseToken(t *testing.T) {
 }
 
 func TestTokenValidate(t *testing.T) {
-	ts := &actx.MockTimeSource{T: timeNow}
 	tolerance := 5 * time.Minute
 
 	tests := []struct {
 		name       string
 		claims     []Claim
-		timeSource actx.TimeSource
 		tolerance  time.Duration
 		extraRules []paseto.Rule
 		expErr     string
@@ -224,8 +216,7 @@ func TestTokenValidate(t *testing.T) {
 				ClaimNotBefore(timeNow.Add(-30 * time.Minute)),
 				ClaimExpiration(timeNow.Add(time.Hour)),
 			},
-			timeSource: ts,
-			tolerance:  tolerance,
+			tolerance: tolerance,
 		},
 		{
 			name: "ok/with_tolerance",
@@ -234,8 +225,7 @@ func TestTokenValidate(t *testing.T) {
 				ClaimNotBefore(timeNow.Add(2 * time.Minute)),
 				ClaimExpiration(timeNow.Add(time.Hour)),
 			},
-			timeSource: ts,
-			tolerance:  tolerance,
+			tolerance: tolerance,
 		},
 		{
 			name: "err/future_issued_at",
@@ -244,9 +234,8 @@ func TestTokenValidate(t *testing.T) {
 				ClaimNotBefore(timeNow.Add(time.Hour)),
 				ClaimExpiration(timeNow.Add(2 * time.Hour)),
 			},
-			timeSource: ts,
-			tolerance:  tolerance,
-			expErr:     "future Issued At time",
+			tolerance: tolerance,
+			expErr:    "future Issued At time",
 		},
 		{
 			name: "err/not_before_future",
@@ -255,9 +244,8 @@ func TestTokenValidate(t *testing.T) {
 				ClaimNotBefore(timeNow.Add(time.Hour)),
 				ClaimExpiration(timeNow.Add(2 * time.Hour)),
 			},
-			timeSource: ts,
-			tolerance:  tolerance,
-			expErr:     "not valid yet",
+			tolerance: tolerance,
+			expErr:    "not valid yet",
 		},
 		{
 			name: "err/expired",
@@ -266,9 +254,8 @@ func TestTokenValidate(t *testing.T) {
 				ClaimNotBefore(timeNow.Add(-90 * time.Minute)),
 				ClaimExpiration(timeNow.Add(-time.Hour)),
 			},
-			timeSource: ts,
-			tolerance:  tolerance,
-			expErr:     "expired",
+			tolerance: tolerance,
+			expErr:    "expired",
 		},
 		{
 			name: "err/time_inconsistency",
@@ -277,9 +264,8 @@ func TestTokenValidate(t *testing.T) {
 				ClaimNotBefore(timeNow.Add(-time.Hour)),
 				ClaimExpiration(timeNow.Add(time.Hour)),
 			},
-			timeSource: ts,
-			tolerance:  tolerance,
-			expErr:     "Issued At time is after Not Before time",
+			tolerance: tolerance,
+			expErr:    "Issued At time is after Not Before time",
 		},
 		{
 			name: "err/extra_rule_failure",
@@ -288,8 +274,7 @@ func TestTokenValidate(t *testing.T) {
 				ClaimNotBefore(timeNow.Add(-30 * time.Minute)),
 				ClaimExpiration(timeNow.Add(time.Hour)),
 			},
-			timeSource: ts,
-			tolerance:  tolerance,
+			tolerance: tolerance,
 			extraRules: []paseto.Rule{
 				func(token paseto.Token) error {
 					return assert.AnError
@@ -301,10 +286,10 @@ func TestTokenValidate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tok, err := NewToken(ts, tt.claims...)
+			tok, err := NewToken(timeNowFn, tt.claims...)
 			require.NoError(t, err)
 
-			err = tok.Validate(tt.timeSource, tt.tolerance, tt.extraRules...)
+			err = tok.Validate(timeNowFn, tt.tolerance, tt.extraRules...)
 
 			if tt.expErr != "" {
 				assert.Error(t, err)
@@ -396,9 +381,7 @@ func TestTokenProtocol(t *testing.T) {
 }
 
 func TestTokenWrite(t *testing.T) {
-	ts := &actx.MockTimeSource{T: timeNow}
-
-	tok, err := NewToken(ts,
+	tok, err := NewToken(timeNowFn,
 		ClaimIssuer("test-issuer"),
 		ClaimSubject("test-subject"),
 		NewClaim("role", "Role", "admin"),
@@ -500,8 +483,8 @@ type keyTokenPair struct {
 }
 
 // createTestKeyTokens creates all combinations of keys and tokens for testing
-func createTestKeyTokens(t *testing.T, ts actx.TimeSource) map[string]keyTokenPair {
-	testToken, err := NewToken(ts, ClaimIssuer("test"))
+func createTestKeyTokens(t *testing.T) map[string]keyTokenPair {
+	testToken, err := NewToken(timeNowFn, ClaimIssuer("test"))
 	require.NoError(t, err)
 
 	versions := []paseto.Version{paseto.Version2, paseto.Version3, paseto.Version4}

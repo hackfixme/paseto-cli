@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 	"log/slog"
+	"time"
 
 	"github.com/mandelsoft/vfs/pkg/vfs"
 )
@@ -12,11 +13,11 @@ import (
 // the application to avoid direct dependencies on external systems, and make
 // testing easier.
 type Context struct {
-	Ctx    context.Context // global context
-	FS     vfs.FileSystem  // filesystem
-	Env    Environment     // process environment
-	Logger *slog.Logger    // global logger
-	Time   TimeSource
+	Ctx     context.Context // global context
+	FS      vfs.FileSystem  // filesystem
+	Env     Environment     // process environment
+	Logger  *slog.Logger    // global logger
+	TimeNow func() time.Time
 
 	// Standard streams
 	Stdin  io.Reader

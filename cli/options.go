@@ -17,7 +17,6 @@ import (
 	"aidanwoods.dev/go-paseto"
 	"github.com/alecthomas/kong"
 
-	"go.hackfix.me/paseto-cli/app/context"
 	"go.hackfix.me/paseto-cli/xpaseto"
 	"go.hackfix.me/paseto-cli/xtime"
 )
@@ -71,7 +70,7 @@ func (cm ClaimsMapper) Decode(kctx *kong.DecodeContext, target reflect.Value) er
 
 // ExpirationMapper parses the token expiration duration or timestamp.
 type ExpirationMapper struct {
-	time context.TimeSource
+	timeNow func() time.Time
 }
 
 var _ kong.Mapper = (*ExpirationMapper)(nil)
@@ -83,16 +82,19 @@ func (em ExpirationMapper) Decode(kctx *kong.DecodeContext, target reflect.Value
 	if err != nil {
 		return err
 	}
+
+	timeNow := em.timeNow()
+
 	t, err := time.Parse(time.RFC3339, value)
 	if err != nil {
 		dur, err := xtime.ParseDuration(value)
 		if err != nil {
 			return err
 		}
-		t = em.time.Now().Add(dur)
+		t = timeNow.Add(dur)
 	}
 
-	if t.Before(em.time.Now()) {
+	if t.Before(timeNow) {
 		return errors.New("expiration time is in the past")
 	}
 

@@ -36,7 +36,7 @@ func New(appCtx *actx.Context, version string) (*CLI, error) {
 		kong.UsageOnError(),
 		kong.DefaultEnvars("PASETO"),
 		kong.NamedMapper("claims", ClaimsMapper{stdin: appCtx.Stdin}),
-		kong.NamedMapper("expiration", &ExpirationMapper{time: appCtx.Time}),
+		kong.NamedMapper("expiration", &ExpirationMapper{timeNow: appCtx.TimeNow}),
 		kong.ConfigureHelp(kong.HelpOptions{
 			Compact:             true,
 			Summary:             true,
@@ -44,8 +44,8 @@ func New(appCtx *actx.Context, version string) (*CLI, error) {
 		}),
 		kong.ValueFormatter(func(value *kong.Value) string {
 			if value.Name == "expiration" {
-				y, m, d := appCtx.Time.Now().Date()
-				exampleExp := time.Date(y, m, d+1, 0, 0, 0, 0, appCtx.Time.Now().Location())
+				y, m, d := appCtx.TimeNow().Date()
+				exampleExp := time.Date(y, m, d+1, 0, 0, 0, 0, appCtx.TimeNow().Location())
 				value.Help = fmt.Sprintf(value.OrigHelp, exampleExp.Format(time.RFC3339))
 			}
 			return value.Help
