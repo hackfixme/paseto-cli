@@ -160,6 +160,7 @@ linters:
           - dupl
           - funlen
           - gocognit
+          - gochecknoglobals
           - lll
           - wrapcheck
         path: _(test|gen)\.go
