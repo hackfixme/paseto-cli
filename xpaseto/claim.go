@@ -58,16 +58,45 @@ func ClaimSubject(sub string) Claim {
 	return NewClaim("sub", "Subject", sub)
 }
 
-// StdClaims returns a slice of standard claims with empty values.
-func StdClaims() []Claim {
-	return []Claim{
-		ClaimID(""),
-		ClaimIssuedAt(time.Time{}),
-		ClaimNotBefore(time.Time{}),
-		ClaimExpiration(time.Time{}),
-		ClaimIssuer(""),
-		ClaimSubject(""),
-		ClaimAudience(""),
+// ClaimTimeConsistency checks that the "iat", "nbf", and "exp" fields exist and
+// are valid, and that their times are consistent with each other.
+// Specifically it checks that iat <= nbf <= exp.
+func ClaimTimeConsistency() paseto.Rule {
+	return func(token paseto.Token) error {
+		iat, err := token.GetIssuedAt()
+		if err != nil {
+			//nolint:wrapcheck // It doesn't matter. The error is wrapped in Validate.
+			return err
+		}
+
+		nbf, err := token.GetNotBefore()
+		if err != nil {
+			//nolint:wrapcheck // It doesn't matter. The error is wrapped in Validate.
+			return err
+		}
+
+		exp, err := token.GetExpiration()
+		if err != nil {
+			//nolint:wrapcheck // It doesn't matter. The error is wrapped in Validate.
+			return err
+		}
+
+		if iat.After(exp) {
+			//nolint:staticcheck // ST1005; deliberate capitalization of claim name.
+			return fmt.Errorf("Issued At time is after Expiration time")
+		}
+
+		if iat.After(nbf) {
+			//nolint:staticcheck // ST1005; deliberate capitalization of claim name.
+			return fmt.Errorf("Issued At time is after Not Before time")
+		}
+
+		if nbf.After(exp) {
+			//nolint:staticcheck // ST1005; deliberate capitalization of claim name.
+			return fmt.Errorf("Not Before time is after Expiration time")
+		}
+
+		return nil
 	}
 }
 
@@ -124,38 +153,18 @@ func NotIssuedAfter(t time.Time, tolerance time.Duration) paseto.Rule {
 	}
 }
 
-// ClaimTimeConsistency checks that the "iat", "nbf", and "exp" fields exist and
-// are valid, and that their times are consistent with each other.
-// Specifically it checks that iat <= nbf <= exp.
-func ClaimTimeConsistency() paseto.Rule {
-	return func(token paseto.Token) error {
-		iat, err := token.GetIssuedAt()
-		if err != nil {
-			return err
-		}
+//nolint:gochecknoglobals // Deliberate cache.
+var registeredClaims = []Claim{
+	ClaimID(""),
+	ClaimIssuedAt(time.Time{}),
+	ClaimNotBefore(time.Time{}),
+	ClaimExpiration(time.Time{}),
+	ClaimIssuer(""),
+	ClaimSubject(""),
+	ClaimAudience(""),
+}
 
-		nbf, err := token.GetNotBefore()
-		if err != nil {
-			return err
-		}
-
-		exp, err := token.GetExpiration()
-		if err != nil {
-			return err
-		}
-
-		if iat.After(exp) {
-			return fmt.Errorf("Issued At time is after Expiration time")
-		}
-
-		if iat.After(nbf) {
-			return fmt.Errorf("Issued At time is after Not Before time")
-		}
-
-		if nbf.After(exp) {
-			return fmt.Errorf("Not Before time is after Expiration time")
-		}
-
-		return nil
-	}
+// RegisteredClaims returns the registered claims with empty values.
+func RegisteredClaims() []Claim {
+	return registeredClaims
 }

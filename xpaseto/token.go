@@ -137,7 +137,7 @@ func (tk *Token) Write(w io.Writer, f TokenFormat) (err error) {
 		tw := tabwriter.NewWriter(w, 6, 2, 2, ' ', 0)
 
 		seenClaims := map[string]bool{}
-		for _, claim := range StdClaims() {
+		for _, claim := range RegisteredClaims() {
 			valPtr := reflect.New(reflect.TypeOf(claim.Value))
 			err = tk.Get(claim.Code, valPtr.Interface())
 			if err != nil {

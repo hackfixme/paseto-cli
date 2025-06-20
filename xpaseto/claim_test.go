@@ -78,8 +78,8 @@ func TestClaimTypes(t *testing.T) {
 	}
 }
 
-func TestStdClaims(t *testing.T) {
-	claims := StdClaims()
+func TestRegisteredClaims(t *testing.T) {
+	claims := RegisteredClaims()
 
 	require.Len(t, claims, 7)
 
