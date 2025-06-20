@@ -357,26 +357,26 @@ func TestAppSignOK(t *testing.T) {
 		expiration      string
 		claimsFromArgs  map[string]any
 		claimsFromStdin map[string]any
-		expClaims       map[string]any
+		expClaims       []xpaseto.Claim
 	}{
 		{
 			name:     "v4/default_exp-no_claims",
 			version:  paseto.Version4,
 			encoding: xpaseto.KeyEncodingHex,
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.Add(time.Hour).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.Add(time.Hour)),
 			},
 		},
 		{
 			name:     "v4/default_exp-no_claims-pem",
 			version:  paseto.Version4,
 			encoding: xpaseto.KeyEncodingPEM,
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.Add(time.Hour).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.Add(time.Hour)),
 			},
 		},
 		{
@@ -384,10 +384,10 @@ func TestAppSignOK(t *testing.T) {
 			version:    paseto.Version4,
 			encoding:   xpaseto.KeyEncodingHex,
 			expiration: "1d",
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
 			},
 		},
 		{
@@ -396,12 +396,12 @@ func TestAppSignOK(t *testing.T) {
 			encoding:       xpaseto.KeyEncodingHex,
 			expiration:     timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
 			claimsFromArgs: map[string]any{"a": "1", "b": "2"},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
-				"a":   "1",
-				"b":   "2",
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
+				xpaseto.NewClaim("a", "", "1"),
+				xpaseto.NewClaim("b", "", "2"),
 			},
 		},
 		{
@@ -410,12 +410,12 @@ func TestAppSignOK(t *testing.T) {
 			encoding:       xpaseto.KeyEncodingHex,
 			expiration:     timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
 			claimsFromArgs: map[string]any{"a": "1", "b": "2"},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
-				"a":   "1",
-				"b":   "2",
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
+				xpaseto.NewClaim("a", "", "1"),
+				xpaseto.NewClaim("b", "", "2"),
 			},
 		},
 		{
@@ -424,12 +424,12 @@ func TestAppSignOK(t *testing.T) {
 			encoding:       xpaseto.KeyEncodingHex,
 			expiration:     "1d",
 			claimsFromArgs: map[string]any{"a": "1", "b": "2"},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
-				"a":   "1",
-				"b":   "2",
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
+				xpaseto.NewClaim("a", "", "1"),
+				xpaseto.NewClaim("b", "", "2"),
 			},
 		},
 		{
@@ -439,13 +439,13 @@ func TestAppSignOK(t *testing.T) {
 			expiration:      "1d",
 			claimsFromArgs:  map[string]any{"a": "1", "b": "2"},
 			claimsFromStdin: map[string]any{"b": float64(20), "c": float64(3)},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
-				"a":   "1",
-				"b":   "2",
-				"c":   float64(3),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
+				xpaseto.NewClaim("a", "", "1"),
+				xpaseto.NewClaim("b", "", "2"),
+				xpaseto.NewClaim("c", "", float64(3)),
 			},
 		},
 		{
@@ -453,10 +453,10 @@ func TestAppSignOK(t *testing.T) {
 			version:        paseto.Version4,
 			encoding:       xpaseto.KeyEncodingHex,
 			claimsFromArgs: map[string]any{"exp": timeNow.AddDate(0, 0, 7).Format(time.RFC3339)},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 7).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 7)),
 			},
 		},
 		{
@@ -465,10 +465,10 @@ func TestAppSignOK(t *testing.T) {
 			encoding:       xpaseto.KeyEncodingHex,
 			expiration:     "1d",
 			claimsFromArgs: map[string]any{"exp": timeNow.AddDate(0, 0, 7).Format(time.RFC3339)},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
 			},
 		},
 	}
@@ -523,7 +523,8 @@ func TestAppSignOK(t *testing.T) {
 			token, err := xpaseto.ParseToken(key.Public(), stdout)
 			h(assert.NoError(t, err))
 
-			gotClaims := token.Claims()
+			gotClaims, err := token.Claims()
+			h(assert.NoError(t, err))
 			h(assert.Equal(t, tc.expClaims, gotClaims))
 		})
 	}
@@ -606,26 +607,26 @@ func TestAppEncryptOK(t *testing.T) {
 		expiration      string
 		claimsFromArgs  map[string]any
 		claimsFromStdin map[string]any
-		expClaims       map[string]any
+		expClaims       []xpaseto.Claim
 	}{
 		{
 			name:     "v4/default_exp-no_claims",
 			version:  paseto.Version4,
 			encoding: xpaseto.KeyEncodingHex,
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.Add(time.Hour).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.Add(time.Hour)),
 			},
 		},
 		{
 			name:     "v4/default_exp-no_claims-pem",
 			version:  paseto.Version4,
 			encoding: xpaseto.KeyEncodingPEM,
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.Add(time.Hour).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.Add(time.Hour)),
 			},
 		},
 		{
@@ -633,10 +634,10 @@ func TestAppEncryptOK(t *testing.T) {
 			version:    paseto.Version4,
 			encoding:   xpaseto.KeyEncodingHex,
 			expiration: "1d",
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
 			},
 		},
 		{
@@ -645,12 +646,12 @@ func TestAppEncryptOK(t *testing.T) {
 			encoding:       xpaseto.KeyEncodingHex,
 			expiration:     timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
 			claimsFromArgs: map[string]any{"a": "1", "b": "2"},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
-				"a":   "1",
-				"b":   "2",
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
+				xpaseto.NewClaim("a", "", "1"),
+				xpaseto.NewClaim("b", "", "2"),
 			},
 		},
 		{
@@ -659,12 +660,12 @@ func TestAppEncryptOK(t *testing.T) {
 			encoding:       xpaseto.KeyEncodingHex,
 			expiration:     timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
 			claimsFromArgs: map[string]any{"a": "1", "b": "2"},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
-				"a":   "1",
-				"b":   "2",
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
+				xpaseto.NewClaim("a", "", "1"),
+				xpaseto.NewClaim("b", "", "2"),
 			},
 		},
 		{
@@ -673,12 +674,12 @@ func TestAppEncryptOK(t *testing.T) {
 			encoding:       xpaseto.KeyEncodingHex,
 			expiration:     "1d",
 			claimsFromArgs: map[string]any{"a": "1", "b": "2"},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
-				"a":   "1",
-				"b":   "2",
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
+				xpaseto.NewClaim("a", "", "1"),
+				xpaseto.NewClaim("b", "", "2"),
 			},
 		},
 		{
@@ -688,13 +689,13 @@ func TestAppEncryptOK(t *testing.T) {
 			expiration:      "1d",
 			claimsFromArgs:  map[string]any{"a": "1", "b": "2"},
 			claimsFromStdin: map[string]any{"b": float64(20), "c": float64(3)},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
-				"a":   "1",
-				"b":   "2",
-				"c":   float64(3),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
+				xpaseto.NewClaim("a", "", "1"),
+				xpaseto.NewClaim("b", "", "2"),
+				xpaseto.NewClaim("c", "", float64(3)),
 			},
 		},
 		{
@@ -702,10 +703,10 @@ func TestAppEncryptOK(t *testing.T) {
 			version:        paseto.Version4,
 			encoding:       xpaseto.KeyEncodingHex,
 			claimsFromArgs: map[string]any{"exp": timeNow.AddDate(0, 0, 7).Format(time.RFC3339)},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 7).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 7)),
 			},
 		},
 		{
@@ -714,10 +715,10 @@ func TestAppEncryptOK(t *testing.T) {
 			encoding:       xpaseto.KeyEncodingHex,
 			expiration:     "1d",
 			claimsFromArgs: map[string]any{"exp": timeNow.AddDate(0, 0, 7).Format(time.RFC3339)},
-			expClaims: map[string]any{
-				"iat": timeNow.Format(time.RFC3339),
-				"nbf": timeNow.Format(time.RFC3339),
-				"exp": timeNow.AddDate(0, 0, 1).Format(time.RFC3339),
+			expClaims: []xpaseto.Claim{
+				xpaseto.ClaimIssuedAt(timeNow),
+				xpaseto.ClaimNotBefore(timeNow),
+				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 1)),
 			},
 		},
 	}
@@ -772,7 +773,8 @@ func TestAppEncryptOK(t *testing.T) {
 			token, err := xpaseto.ParseToken(key, stdout)
 			h(assert.NoError(t, err))
 
-			gotClaims := token.Claims()
+			gotClaims, err := token.Claims()
+			h(assert.NoError(t, err))
 			h(assert.Equal(t, tc.expClaims, gotClaims))
 		})
 	}
@@ -866,9 +868,9 @@ func TestAppParseOK(t *testing.T) {
 			outputFmt: xpaseto.TokenFormatText,
 			claims:    []xpaseto.Claim{},
 			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:00 +0000 UTC  \n" +
-				"Not Before:  2025-01-01 00:00:00 +0000 UTC  \n" +
-				"Expiration:  2025-01-01 01:00:00 +0000 UTC  \n",
+				"Issued At:   2025-01-01 00:00:00 +0000 UTC\n" +
+				"Not Before:  2025-01-01 00:00:00 +0000 UTC\n" +
+				"Expiration:  2025-01-01 01:00:00 +0000 UTC\n",
 		},
 		{
 			variant:   "claims_default",
@@ -878,9 +880,9 @@ func TestAppParseOK(t *testing.T) {
 			outputFmt: xpaseto.TokenFormatText,
 			claims:    []xpaseto.Claim{},
 			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:00 +0000 UTC  \n" +
-				"Not Before:  2025-01-01 00:00:00 +0000 UTC  \n" +
-				"Expiration:  2025-01-01 01:00:00 +0000 UTC  \n",
+				"Issued At:   2025-01-01 00:00:00 +0000 UTC\n" +
+				"Not Before:  2025-01-01 00:00:00 +0000 UTC\n" +
+				"Expiration:  2025-01-01 01:00:00 +0000 UTC\n",
 		},
 		{
 			variant:   "claims_default",
@@ -890,9 +892,9 @@ func TestAppParseOK(t *testing.T) {
 			outputFmt: xpaseto.TokenFormatText,
 			claims:    []xpaseto.Claim{},
 			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:00 +0000 UTC  \n" +
-				"Not Before:  2025-01-01 00:00:00 +0000 UTC  \n" +
-				"Expiration:  2025-01-01 01:00:00 +0000 UTC  \n",
+				"Issued At:   2025-01-01 00:00:00 +0000 UTC\n" +
+				"Not Before:  2025-01-01 00:00:00 +0000 UTC\n" +
+				"Expiration:  2025-01-01 01:00:00 +0000 UTC\n",
 		},
 		{
 			// The token is expired, but no error is expected since validation is disabled.
@@ -908,9 +910,9 @@ func TestAppParseOK(t *testing.T) {
 			},
 			args: []string{"--no-validate"},
 			expOutput: "" +
-				"Issued At:   2024-12-25 00:00:00 +0000 UTC  \n" +
-				"Not Before:  2024-12-25 00:00:00 +0000 UTC  \n" +
-				"Expiration:  2024-12-31 00:00:00 +0000 UTC  \n",
+				"Issued At:   2024-12-25 00:00:00 +0000 UTC\n" +
+				"Not Before:  2024-12-25 00:00:00 +0000 UTC\n" +
+				"Expiration:  2024-12-31 00:00:00 +0000 UTC\n",
 		},
 		{
 			variant:   "time_skew_tolerance-exp-default",
@@ -924,9 +926,9 @@ func TestAppParseOK(t *testing.T) {
 				xpaseto.ClaimExpiration(timeNow.Add(-10 * time.Second)),
 			},
 			expOutput: "" +
-				"Issued At:   2024-12-31 00:00:00 +0000 UTC  \n" +
-				"Not Before:  2024-12-31 00:00:00 +0000 UTC  \n" +
-				"Expiration:  2024-12-31 23:59:50 +0000 UTC  \n",
+				"Issued At:   2024-12-31 00:00:00 +0000 UTC\n" +
+				"Not Before:  2024-12-31 00:00:00 +0000 UTC\n" +
+				"Expiration:  2024-12-31 23:59:50 +0000 UTC\n",
 		},
 		{
 			variant:   "time_skew_tolerance-exp-custom",
@@ -941,9 +943,9 @@ func TestAppParseOK(t *testing.T) {
 			},
 			args: []string{"--time-skew-tolerance=1m"},
 			expOutput: "" +
-				"Issued At:   2024-12-31 00:00:00 +0000 UTC  \n" +
-				"Not Before:  2024-12-31 00:00:00 +0000 UTC  \n" +
-				"Expiration:  2024-12-31 23:59:10 +0000 UTC  \n",
+				"Issued At:   2024-12-31 00:00:00 +0000 UTC\n" +
+				"Not Before:  2024-12-31 00:00:00 +0000 UTC\n" +
+				"Expiration:  2024-12-31 23:59:10 +0000 UTC\n",
 		},
 		{
 			variant:   "time_skew_tolerance-iat-nbf-default",
@@ -957,9 +959,9 @@ func TestAppParseOK(t *testing.T) {
 				xpaseto.ClaimExpiration(timeNow.Add(time.Hour)),
 			},
 			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:10 +0000 UTC  \n" +
-				"Not Before:  2025-01-01 00:00:10 +0000 UTC  \n" +
-				"Expiration:  2025-01-01 01:00:00 +0000 UTC  \n",
+				"Issued At:   2025-01-01 00:00:10 +0000 UTC\n" +
+				"Not Before:  2025-01-01 00:00:10 +0000 UTC\n" +
+				"Expiration:  2025-01-01 01:00:00 +0000 UTC\n",
 		},
 		{
 			variant:   "exp_custom_claims",
@@ -970,16 +972,16 @@ func TestAppParseOK(t *testing.T) {
 			claims: []xpaseto.Claim{
 				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, 7)),
 				xpaseto.NewClaim("a", "", 1),
-				xpaseto.NewClaim("b", "", 2),
+				xpaseto.NewClaim("b", "", 2.5),
 			},
 			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:00 +0000 UTC  \n" +
-				"Not Before:  2025-01-01 00:00:00 +0000 UTC  \n" +
-				"Expiration:  2025-01-08 00:00:00 +0000 UTC  \n\n" +
+				"Issued At:   2025-01-01 00:00:00 +0000 UTC\n" +
+				"Not Before:  2025-01-01 00:00:00 +0000 UTC\n" +
+				"Expiration:  2025-01-08 00:00:00 +0000 UTC\n\n" +
 				"Custom Claims\n" +
 				"-------------\n" +
-				"a:    1     \n" +
-				"b:    2     \n",
+				"a:    1\n" +
+				"b:    2.5\n",
 		},
 		{
 			variant:   "exp_custom_claims_json",

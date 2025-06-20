@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"reflect"
 	"slices"
 	"strings"
 	"text/tabwriter"
@@ -106,6 +105,56 @@ func ParseToken(key *Key, token string) (*Token, error) {
 	return &Token{tk}, nil
 }
 
+// Claims returns all claims of this token in a stable order. Registered claims
+// will be first in the order defined by RegisteredClaims, followed by custom
+// claims ordered lexicographically by name. An error is returned if converting
+// a registered claim value to its expected type fails.
+func (tk *Token) Claims() ([]Claim, error) {
+	rawClaims := tk.ClaimsRaw()
+	regClaims := RegisteredClaims()
+	claims := make([]Claim, 0, len(rawClaims))
+
+	seenClaims := make(map[string]bool, len(regClaims))
+	for _, claim := range regClaims {
+		var err error
+		if _, ok := claim.Value.(string); ok {
+			claim.Value, err = tk.GetString(claim.Code)
+		} else {
+			claim.Value, err = tk.GetTime(claim.Code)
+		}
+
+		if err != nil {
+			if strings.Contains(err.Error(), "not present in claims") {
+				continue
+			}
+			return nil, fmt.Errorf("failed getting registered claim '%s': %w", claim.Code, err)
+		}
+
+		claims = append(claims, claim)
+		seenClaims[claim.Code] = true
+	}
+
+	customClaimsNames := make([]string, 0, len(rawClaims)-len(seenClaims))
+	for name := range rawClaims {
+		if !seenClaims[name] {
+			customClaimsNames = append(customClaimsNames, name)
+		}
+	}
+	slices.Sort(customClaimsNames)
+
+	for _, name := range customClaimsNames {
+		claim := NewClaim(name, "", rawClaims[name])
+		claims = append(claims, claim)
+	}
+
+	return claims, nil
+}
+
+// ClaimsRaw returns the raw claim data.
+func (tk *Token) ClaimsRaw() map[string]any {
+	return tk.Token.Claims()
+}
+
 // Validate validates the token against default and additional rules.
 func (tk *Token) Validate(
 	timeNowFn func() time.Time, timeSkewTolerance time.Duration,
@@ -130,52 +179,44 @@ func (tk *Token) Validate(
 	return nil
 }
 
-// Write writes the token to the specified writer in the given format.
-func (tk *Token) Write(w io.Writer, f TokenFormat) (err error) {
+// Write writes the token data to the specified writer in the given format.
+//
+//nolint:gocognit // This is fine.
+func (tk *Token) Write(w io.Writer, f TokenFormat) error {
 	switch f {
 	case TokenFormatText:
 		tw := tabwriter.NewWriter(w, 6, 2, 2, ' ', 0)
 
-		seenClaims := map[string]bool{}
-		for _, claim := range RegisteredClaims() {
-			valPtr := reflect.New(reflect.TypeOf(claim.Value))
-			err = tk.Get(claim.Code, valPtr.Interface())
-			if err != nil {
-				if strings.Contains(err.Error(), "not present in claims") {
-					continue
-				}
-				return fmt.Errorf("failed marshaling token data to text: %w", err)
+		claims, err := tk.Claims()
+		if err != nil {
+			return err
+		}
+
+		var (
+			i     int
+			claim Claim
+		)
+		for i, claim = range claims {
+			if claim.Name == "" {
+				break
 			}
-			seenClaims[claim.Code] = true
-			_, err = fmt.Fprintln(tw, fmt.Sprintf("%s:\t%v\t", claim.Name, valPtr.Elem().Interface()))
+			_, err = fmt.Fprintf(tw, "%s:\t%v\n", claim.Name, claim.Value)
 			if err != nil {
 				return fmt.Errorf("failed writing token data: %w", err)
 			}
 		}
 
-		customClaims := []Claim{}
-		for code, val := range tk.Claims() {
-			if seenClaims[code] {
-				continue
-			}
-			customClaims = append(customClaims, NewClaim(code, "", val))
-		}
-
-		slices.SortFunc(customClaims, func(a, b Claim) int {
-			return strings.Compare(a.Code, b.Code)
-		})
-
-		if len(customClaims) > 0 {
-			_, err = fmt.Fprintln(tw, "\nCustom Claims")
+		if i < len(claims)-1 {
+			_, err = fmt.Fprintf(tw, "\nCustom Claims\n")
 			if err != nil {
 				return fmt.Errorf("failed writing token data: %w", err)
 			}
-			_, err = fmt.Fprintln(tw, "-------------")
+			_, err = fmt.Fprintf(tw, "-------------\n")
 			if err != nil {
 				return fmt.Errorf("failed writing token data: %w", err)
 			}
-			for _, cc := range customClaims {
-				_, err = fmt.Fprintln(tw, fmt.Sprintf("%s:\t%v\t", cc.Code, cc.Value))
+			for j := i; j < len(claims); j++ {
+				_, err = fmt.Fprintf(tw, "%s:\t%v\n", claims[j].Code, claims[j].Value)
 				if err != nil {
 					return fmt.Errorf("failed writing token data: %w", err)
 				}
@@ -187,7 +228,7 @@ func (tk *Token) Write(w io.Writer, f TokenFormat) (err error) {
 			return fmt.Errorf("failed writing token data: %w", err)
 		}
 	case TokenFormatJSON:
-		m, err := json.MarshalIndent(tk.Claims(), "", "  ")
+		m, err := json.MarshalIndent(tk.ClaimsRaw(), "", "  ")
 		if err != nil {
 			return fmt.Errorf("failed marshaling token data to JSON: %w", err)
 		}
