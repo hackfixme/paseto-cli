@@ -181,7 +181,7 @@ func (tk *Token) Validate(
 
 // Write writes the token data to the specified writer in the given format.
 //
-//nolint:gocognit // This is fine.
+//nolint:gocognit,nestif // This is fine.
 func (tk *Token) Write(w io.Writer, f TokenFormat) error {
 	switch f {
 	case TokenFormatText:
@@ -216,7 +216,15 @@ func (tk *Token) Write(w io.Writer, f TokenFormat) error {
 				return fmt.Errorf("failed writing token data: %w", err)
 			}
 			for j := i; j < len(claims); j++ {
-				_, err = fmt.Fprintf(tw, "%s:\t%v\n", claims[j].Code, claims[j].Value)
+				val := claims[j].Value
+				if _, ok := val.(map[string]any); ok {
+					jsonVal, jsonErr := json.Marshal(val)
+					if jsonErr != nil {
+						return fmt.Errorf("failed marshaling claim '%s' to JSON: %w", claims[j].Code, err)
+					}
+					val = string(jsonVal)
+				}
+				_, err = fmt.Fprintf(tw, "%s:\t%v\n", claims[j].Code, val)
 				if err != nil {
 					return fmt.Errorf("failed writing token data: %w", err)
 				}

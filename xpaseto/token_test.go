@@ -384,8 +384,9 @@ func TestTokenWrite(t *testing.T) {
 	tok, err := NewToken(timeNowFn,
 		ClaimIssuer("test-issuer"),
 		ClaimSubject("test-subject"),
-		NewClaim("role", "Role", "admin"),
-		NewClaim("scope", "Scope", "read"),
+		NewClaim("role", "", "admin"),
+		NewClaim("scope", "", "read"),
+		NewClaim("nested", "", map[string]any{"one": 1}),
 	)
 	require.NoError(t, err)
 
@@ -403,15 +404,19 @@ func TestTokenWrite(t *testing.T) {
 			format: TokenFormatText,
 			writer: &bytes.Buffer{},
 			verify: func(t *testing.T, output string) {
-				assert.Contains(t, output, "Issuer:")
-				assert.Contains(t, output, "test-issuer")
-				assert.Contains(t, output, "Subject:")
-				assert.Contains(t, output, "test-subject")
-				assert.Contains(t, output, "Custom Claims")
-				assert.Contains(t, output, "role:")
-				assert.Contains(t, output, "admin")
-				assert.Contains(t, output, "scope:")
-				assert.Contains(t, output, "read")
+				expOutput := `Issued At:   2025-01-01 00:00:00 +0000 UTC
+Not Before:  2025-01-01 00:00:00 +0000 UTC
+Expiration:  2025-01-01 01:00:00 +0000 UTC
+Issuer:      test-issuer
+Subject:     test-subject
+
+Custom Claims
+-------------
+nested:  {"one":1}
+role:    admin
+scope:   read
+`
+				assert.Equal(t, expOutput, output)
 			},
 		},
 		{
