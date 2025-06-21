@@ -867,10 +867,10 @@ func TestAppParseOK(t *testing.T) {
 			encoding:  xpaseto.KeyEncodingHex,
 			outputFmt: xpaseto.TokenFormatText,
 			claims:    []xpaseto.Claim{},
-			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:00 +0000 UTC\n" +
-				"Not Before:  2025-01-01 00:00:00 +0000 UTC\n" +
-				"Expiration:  2025-01-01 01:00:00 +0000 UTC\n",
+			expOutput: `Issued At:   2025-01-01 00:00:00 +0000 UTC
+Not Before:  2025-01-01 00:00:00 +0000 UTC
+Expiration:  2025-01-01 01:00:00 +0000 UTC
+`,
 		},
 		{
 			variant:   "claims_default",
@@ -879,10 +879,10 @@ func TestAppParseOK(t *testing.T) {
 			encoding:  xpaseto.KeyEncodingPEM,
 			outputFmt: xpaseto.TokenFormatText,
 			claims:    []xpaseto.Claim{},
-			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:00 +0000 UTC\n" +
-				"Not Before:  2025-01-01 00:00:00 +0000 UTC\n" +
-				"Expiration:  2025-01-01 01:00:00 +0000 UTC\n",
+			expOutput: `Issued At:   2025-01-01 00:00:00 +0000 UTC
+Not Before:  2025-01-01 00:00:00 +0000 UTC
+Expiration:  2025-01-01 01:00:00 +0000 UTC
+`,
 		},
 		{
 			variant:   "claims_default",
@@ -891,10 +891,10 @@ func TestAppParseOK(t *testing.T) {
 			encoding:  xpaseto.KeyEncodingPEM,
 			outputFmt: xpaseto.TokenFormatText,
 			claims:    []xpaseto.Claim{},
-			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:00 +0000 UTC\n" +
-				"Not Before:  2025-01-01 00:00:00 +0000 UTC\n" +
-				"Expiration:  2025-01-01 01:00:00 +0000 UTC\n",
+			expOutput: `Issued At:   2025-01-01 00:00:00 +0000 UTC
+Not Before:  2025-01-01 00:00:00 +0000 UTC
+Expiration:  2025-01-01 01:00:00 +0000 UTC
+`,
 		},
 		{
 			// The token is expired, but no error is expected since validation is disabled.
@@ -909,10 +909,10 @@ func TestAppParseOK(t *testing.T) {
 				xpaseto.ClaimExpiration(timeNow.AddDate(0, 0, -1)),
 			},
 			args: []string{"--no-validate"},
-			expOutput: "" +
-				"Issued At:   2024-12-25 00:00:00 +0000 UTC\n" +
-				"Not Before:  2024-12-25 00:00:00 +0000 UTC\n" +
-				"Expiration:  2024-12-31 00:00:00 +0000 UTC\n",
+			expOutput: `Issued At:   2024-12-25 00:00:00 +0000 UTC
+Not Before:  2024-12-25 00:00:00 +0000 UTC
+Expiration:  2024-12-31 00:00:00 +0000 UTC
+`,
 		},
 		{
 			variant:   "time_skew_tolerance-exp-default",
@@ -925,10 +925,10 @@ func TestAppParseOK(t *testing.T) {
 				xpaseto.ClaimNotBefore(timeNow.AddDate(0, 0, -1)),
 				xpaseto.ClaimExpiration(timeNow.Add(-10 * time.Second)),
 			},
-			expOutput: "" +
-				"Issued At:   2024-12-31 00:00:00 +0000 UTC\n" +
-				"Not Before:  2024-12-31 00:00:00 +0000 UTC\n" +
-				"Expiration:  2024-12-31 23:59:50 +0000 UTC\n",
+			expOutput: `Issued At:   2024-12-31 00:00:00 +0000 UTC
+Not Before:  2024-12-31 00:00:00 +0000 UTC
+Expiration:  2024-12-31 23:59:50 +0000 UTC
+`,
 		},
 		{
 			variant:   "time_skew_tolerance-exp-custom",
@@ -942,10 +942,10 @@ func TestAppParseOK(t *testing.T) {
 				xpaseto.ClaimExpiration(timeNow.Add(-50 * time.Second)),
 			},
 			args: []string{"--time-skew-tolerance=1m"},
-			expOutput: "" +
-				"Issued At:   2024-12-31 00:00:00 +0000 UTC\n" +
-				"Not Before:  2024-12-31 00:00:00 +0000 UTC\n" +
-				"Expiration:  2024-12-31 23:59:10 +0000 UTC\n",
+			expOutput: `Issued At:   2024-12-31 00:00:00 +0000 UTC
+Not Before:  2024-12-31 00:00:00 +0000 UTC
+Expiration:  2024-12-31 23:59:10 +0000 UTC
+`,
 		},
 		{
 			variant:   "time_skew_tolerance-iat-nbf-default",
@@ -958,10 +958,10 @@ func TestAppParseOK(t *testing.T) {
 				xpaseto.ClaimNotBefore(timeNow.Add(10 * time.Second)),
 				xpaseto.ClaimExpiration(timeNow.Add(time.Hour)),
 			},
-			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:10 +0000 UTC\n" +
-				"Not Before:  2025-01-01 00:00:10 +0000 UTC\n" +
-				"Expiration:  2025-01-01 01:00:00 +0000 UTC\n",
+			expOutput: `Issued At:   2025-01-01 00:00:10 +0000 UTC
+Not Before:  2025-01-01 00:00:10 +0000 UTC
+Expiration:  2025-01-01 01:00:00 +0000 UTC
+`,
 		},
 		{
 			variant:   "exp_custom_claims",
@@ -974,14 +974,15 @@ func TestAppParseOK(t *testing.T) {
 				xpaseto.NewClaim("a", "", 1),
 				xpaseto.NewClaim("b", "", 2.5),
 			},
-			expOutput: "" +
-				"Issued At:   2025-01-01 00:00:00 +0000 UTC\n" +
-				"Not Before:  2025-01-01 00:00:00 +0000 UTC\n" +
-				"Expiration:  2025-01-08 00:00:00 +0000 UTC\n\n" +
-				"Custom Claims\n" +
-				"-------------\n" +
-				"a:    1\n" +
-				"b:    2.5\n",
+			expOutput: `Issued At:   2025-01-01 00:00:00 +0000 UTC
+Not Before:  2025-01-01 00:00:00 +0000 UTC
+Expiration:  2025-01-08 00:00:00 +0000 UTC
+
+Custom Claims
+-------------
+a:    1
+b:    2.5
+`,
 		},
 		{
 			variant:   "exp_custom_claims_json",
