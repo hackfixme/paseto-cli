@@ -2,6 +2,7 @@ package xpaseto
 
 import (
 	"fmt"
+	"slices"
 	"time"
 
 	"aidanwoods.dev/go-paseto"
@@ -147,6 +148,58 @@ func NotIssuedAfter(t time.Time, tolerance time.Duration) paseto.Rule {
 
 		if t.Before(iat.Add(-tolerance)) {
 			return fmt.Errorf("this token has a future Issued At time")
+		}
+
+		return nil
+	}
+}
+
+// AllowAudiences checks that the token has a valid "aud" field, and that its
+// value is contained in auds.
+func AllowAudiences(auds []string) paseto.Rule {
+	return func(token paseto.Token) error {
+		aud, err := token.GetAudience()
+		if err != nil {
+			return err
+		}
+
+		if !slices.Contains(auds, aud) {
+			return fmt.Errorf("audience '%s' is not allowed", aud)
+		}
+
+		return nil
+	}
+}
+
+// AllowIssuers checks that the token has a valid "iss" field, and that its
+// value is contained in issuers.
+func AllowIssuers(issuers []string) paseto.Rule {
+	return func(token paseto.Token) error {
+		iss, err := token.GetIssuer()
+		if err != nil {
+			return err
+		}
+
+		if !slices.Contains(issuers, iss) {
+			return fmt.Errorf("issuer '%s' is not allowed", iss)
+		}
+
+		return nil
+	}
+}
+
+// AllowSubjects checks that the token has a valid "sub" field, and that its
+// value is contained in subs.
+func AllowSubjects(subs []string) paseto.Rule {
+	return func(token paseto.Token) error {
+		sub, err := token.GetSubject()
+		if err != nil {
+			//nolint:wrapcheck // It doesn't matter. The error is wrapped in Validate.
+			return err
+		}
+
+		if !slices.Contains(subs, sub) {
+			return fmt.Errorf("subject '%s' is not allowed", sub)
 		}
 
 		return nil

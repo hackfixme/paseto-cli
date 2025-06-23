@@ -388,3 +388,129 @@ func TestClaimTimeConsistency(t *testing.T) {
 		assert.Contains(t, err.Error(), "not present in claims")
 	})
 }
+
+func TestAllowAudiences(t *testing.T) {
+	tests := []struct {
+		name   string
+		aud    string
+		expErr string
+	}{
+		{
+			name: "ok",
+			aud:  "Test",
+		},
+		{
+			name:   "err/missing_claim",
+			aud:    "",
+			expErr: "value for key `aud' not present in claims",
+		},
+		{
+			name:   "err/not_allowed",
+			aud:    "Test2",
+			expErr: "audience 'Test2' is not allowed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			token := paseto.NewToken()
+			if tt.aud != "" {
+				token.SetAudience(tt.aud)
+			}
+
+			rule := AllowAudiences([]string{"Test"})
+			err := rule(token)
+
+			if tt.expErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestAllowIssuers(t *testing.T) {
+	tests := []struct {
+		name   string
+		iss    string
+		expErr string
+	}{
+		{
+			name: "ok",
+			iss:  "Test",
+		},
+		{
+			name:   "err/missing_claim",
+			iss:    "",
+			expErr: "value for key `iss' not present in claims",
+		},
+		{
+			name:   "err/not_allowed",
+			iss:    "Test2",
+			expErr: "issuer 'Test2' is not allowed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			token := paseto.NewToken()
+			if tt.iss != "" {
+				token.SetIssuer(tt.iss)
+			}
+
+			rule := AllowIssuers([]string{"Test"})
+			err := rule(token)
+
+			if tt.expErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestAllowSubjects(t *testing.T) {
+	tests := []struct {
+		name   string
+		sub    string
+		expErr string
+	}{
+		{
+			name: "ok",
+			sub:  "Test",
+		},
+		{
+			name:   "err/missing_claim",
+			sub:    "",
+			expErr: "value for key `sub' not present in claims",
+		},
+		{
+			name:   "err/not_allowed",
+			sub:    "Test2",
+			expErr: "subject 'Test2' is not allowed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			token := paseto.NewToken()
+			if tt.sub != "" {
+				token.SetSubject(tt.sub)
+			}
+
+			rule := AllowSubjects([]string{"Test"})
+			err := rule(token)
+
+			if tt.expErr != "" {
+				require.Error(t, err)
+				assert.Contains(t, err.Error(), tt.expErr)
+			} else {
+				assert.NoError(t, err)
+			}
+		})
+	}
+}
