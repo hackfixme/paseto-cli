@@ -58,11 +58,12 @@ lint report="":
   fi
 
   _report_id="$(date '+%Y%m%d')-$(git describe --tags --abbrev=10 --always)"
-  golangci-lint run --timeout 5m --output.tab.path=stdout --issues-exit-code=0 ./... | \
-    tee "golangci-lint-${_report_id}.txt" | \
-      awk 'NF {if ($2 == "revive") print $2 ":" $3; else print $2}' \
-      | sort | uniq -c | sort -nr \
-      | tee "golangci-lint-summary-${_report_id}.txt"
+  golangci-lint run --timeout 5m --output.tab.path=stdout --issues-exit-code=0 \
+      --show-stats=false ./... \
+    | tee "golangci-lint-${_report_id}.txt" \
+    | awk 'NF {if ($2 == "revive") print $2 ":" $3; else print $2}' \
+    | sed 's,:$,,' | sort | uniq -c | sort -nr \
+    | tee "golangci-lint-summary-${_report_id}.txt"
 
 clean:
   @rm -rf "{{distdir}}" "{{covdir}}" "{{rootdir}}"/golangci-lint*.txt
